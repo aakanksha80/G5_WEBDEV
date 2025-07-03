@@ -1,0 +1,1 @@
+console.log(logicFunction("aakanksha",30000));
