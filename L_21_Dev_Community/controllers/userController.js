@@ -1,0 +1,52 @@
+const User = require("../models/userModel");
+const jwt=require('jsonwebtoken');
+
+const generateToken = (userId) => {
+    return jwt.sign({ id: userId }, process.env.JWT_SECRET_KEY);
+};
+
+const registerUser = async (req,res) =>{
+    const { firstName, lastName, emailId, password} = req.body;
+
+    //VALIDATION
+
+    if (!firstName || !emailId || !password){
+        return res.status(400).send({message:"Please Add all mandatory fields"});
+    }
+
+    //Check the user existing already in db or not
+    const userExists = await User.findOne({emailId});
+    if (userExists){
+        return res.status(400).json({message: "Already Exist"});
+    }
+    const newUser = await User.create({
+        firstName,
+        lastName,
+        emailId,
+        password
+    });
+
+    await newUser.save();
+    const tokenGen = generateToken(newUser._id);
+    console.log(tokenGen);
+    
+    return res.status(201).json("USER CREATED",tokenGen);
+    
+    
+}
+ 
+
+const loginUser=async(req,res)=>{
+    const {emailId,password}=req.body;
+    if(!emailId||!password){
+        return res.status(400).send("Please fill all the details")
+    }
+    const userExists=await User.findOne({emailId});
+    if(!userExists){
+        return res.status(400).send("User not found !!")
+    }
+    res.status(200).json({userExists})
+    // const token = generateToken(user._id);
+}
+
+module.exports = { registerUser,loginUser }
